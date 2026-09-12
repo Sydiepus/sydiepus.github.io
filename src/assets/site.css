@@ -1,0 +1,755 @@
+/* ==================================================================
+   TOKENS
+
+   Naming: --sand-* are the light theme's own values; the unprefixed
+   --bg/--fg/--panel/--accent are the ACTIVE values a rule should use.
+   Never reference --sand-* outside this block — [data-theme="night"]
+   overrides the unprefixed names only.
+
+   The sprite colours below ARE sampled from the logo/avatar.
+   --paper and --night are not: the sprite has no light or dark neutral
+   to sample, so they were chosen as warm neutrals that sit in the same
+   hue family (a pure #ffffff/#000000 reads cold against the palette).
+   ================================================================== */
+:root{
+  /* Sampled straight from the GitHub avatar (assets/logo.png is that file
+     byte-for-byte). The sprite has exactly four colours and these are they —
+     verify with:  uv run --with pillow python rose_check.py  */
+  --rose:      #d95763;
+  --tan:       #d9a066;
+  --bark:      #8f563b;
+  --paper:     #fff3ee;
+  --night:     #2b1b1c;
+
+  /* ---------------------------------------------------------------
+     SAND THEME — built on the POTATO, not on the backdrop.
+
+     The avatar is 81.5% rose, but that rose is the FIELD BEHIND the
+     sprite. The subject — the potato — is tan #d9a066, bark #8f563b and
+     cocoa #663931, all at hue 10-30deg (warm brown). Rose sits at 354deg
+     (red-pink). Keying the page surface to 354 is what made earlier
+     versions read pink; this one is keyed to the tan hue.
+
+     SURFACES. The page and the panels are both light here, and a panel
+     is separated from the page by its CAST SHADOW rather than by its
+     fill. The --panel-* tokens still exist and panel rules must still
+     use them: the night theme gives panels a different value, and a dark
+     panel was tried here (see --sand-panel), so a rule that reaches for
+     --fg/--accent inside a card is a latent bug even when it currently
+     happens to render fine. panel_lint.py enforces this.
+     --------------------------------------------------------------- */
+
+  /* page surface */
+  --sand-bg:     #f8f1ea;   /* parchment, tan hue at 94.5% lightness */
+  --sand-fg:     #33200f;   /* deep bark-brown — 13.85:1 on the page */
+
+  /* panel surface — LIGHT, one step above the page.
+
+     Elevation on a pixel UI comes from the CAST SHADOW, not from the fill.
+     A hard offset shadow only reads as lift when it contrasts with the
+     card it falls from, so the card must be LIGHTER than the shadow. The
+     previous dark-cocoa panel failed exactly here: its border measured
+     1.62:1 and its shadow 1.72:1 against the fill, so card + border +
+     shadow merged into one flat brown blob. It was 8.55:1 from the page
+     and still didn't float — separation from the PAGE is not the same
+     property as lift.
+
+     So the panel goes a touch lighter than the page rather than darker,
+     and the hard offset shadow does the visual separation. */
+  --sand-panel:  #fffdf9;          /* 1.06:1 from the page — the shadow,
+                                      not the fill, is what separates it */
+  --sand-panel-fg: var(--sand-fg); /* 14.68:1 on the panel */
+  --sand-panel-accent: #b72937;    /* same darkened rose as the page: the
+                                      panel is light, so it needs no
+                                      separate accent (5.87:1 here) */
+  --sand-panel-line: var(--sand-fg);
+
+  /* TWO accents, split by WCAG text size.
+     The exact avatar rose is 3.42:1 on parchment: that PASSES the 3:1 bar
+     for large text (>=24px) and non-text/UI, and FAILS the 4.5:1 bar for
+     small text. Nearly every accent usage here is small (Press Start 2P at
+     --t-micro/--t-label is 8-9px), so small text needs a darkened rose.
+     #b72937 is the lightest darkened rose keeping >=0.15 margin on the
+     page — measured, not picked by eye.
+     NOTE --brand is a PAGE colour only: it is 2.50:1 on cocoa, so anything
+     sitting on a panel must use --panel-accent instead. */
+  --brand:       var(--rose);   /* EXACT avatar rose: large text + non-text */
+  --sand-accent: #b72937;       /* darkened rose: small text on the page */
+
+  /* ---- ACTIVE TOKENS — use these in rules, not the --sand-* above ---- */
+  --bg:     var(--sand-bg);
+  --fg:     var(--sand-fg);
+  --accent: var(--sand-accent);
+  --panel:  var(--sand-panel);
+  --panel-fg:     var(--sand-panel-fg);
+  --panel-accent: var(--sand-panel-accent);
+  --panel-accent-contrast: var(--paper);
+  --panel-line:   var(--sand-panel-line);
+  --panel-shadow: var(--sand-fg);
+  --ink:    var(--night);
+  /* text placed ON the accent fill (.btn:hover, .toggle:hover) */
+  --accent-contrast: var(--paper);
+  --code-str: #7a3f12;   /* code sits on a LIGHT panel: dark strings */
+
+  /* CRT overlay strength. The scanlines were authored for a dark page; at
+     full strength on a light surface they read as grey banding rather than
+     phosphor glow, so each theme sets its own. */
+  --scan-ink: color-mix(in srgb,var(--ink) 13%,transparent);
+  --dither-ink: var(--ink);
+  --pixel-shadow: color-mix(in srgb,var(--panel-shadow) 35%,transparent);
+  --scan-opacity: .28;
+  --dither-opacity: .035;
+
+  /* De-emphasis opacity. Below about .68 even --fg on --bg drops under
+     4.5:1, so "dim" has a floor and is not a free dial.
+     --dim-page applies on the page, --dim-soft inside a panel; they differ
+     whenever the two surfaces have different contrast headroom. */
+  --dim-page: .75;
+  --dim-soft: .72;
+
+  /* Inline code chips + the XP bar track. These are derived from the
+     foreground of the surface they sit on, so their tint follows the theme
+     instead of importing a fixed brown or black wash. */
+  --chip-bg: color-mix(in srgb,var(--fg) 10%,transparent);
+  --chip-panel-bg: color-mix(in srgb,var(--panel-fg) 10%,transparent);
+  --track-bg: color-mix(in srgb,var(--panel-fg) 20%,transparent);
+  --photo-backdrop: #efe3d8;
+  --photo-lightbox-border: var(--fg);
+  --photo-frame-line: var(--fg);
+  --photo-frame-shadow: var(--fg);
+  --lightbox-backdrop: color-mix(in srgb,var(--bg) 86%,transparent);
+
+  /* Hard 1-unit drop shadow behind display headings. Keep the shadow in the
+     palette so both themes retain the same colored pixel treatment. */
+  --title-shadow: var(--brand);
+  /* ...except behind display type that is ITSELF --brand, which needs a
+     contrasting palette color rather than another copy of --brand. */
+  --brand-shadow: var(--bark);
+
+  /* THE pixel unit. every size below is a multiple of it. */
+  --px: 4px;
+
+  --gutter: clamp(16px, 4vw, 72px);
+
+  --t-micro: clamp(.5rem,  .43rem + .18vw, .6rem);   /* Press Start is huge per-char */
+  --t-label: clamp(.55rem, .48rem + .22vw, .7rem);
+  --t-body:  clamp(1rem,   .94rem + .3vw,  1.2rem);
+  --t-lead:  clamp(1.15rem, 1rem + .6vw,   1.6rem);
+  --t-h3:    clamp(.8rem,  .6rem + .9vw,   1.4rem);
+  --t-h2:    clamp(1rem,   .68rem + 1.5vw, 2.1rem);
+  --t-hero:  clamp(1.35rem, .7rem + 2.9vw, 3.5rem);
+  --t-mega:  clamp(1.5rem, .7rem + 3.6vw,  4rem);
+
+  /* snap, don't glide */
+  --step: steps(4, end);
+}
+/* NIGHT — single-polarity dark theme: page and panels are both dark, so
+   --panel-* track the page values and the two-polarity machinery above
+   collapses to a no-op. Panels are elevated by being LIGHTER than the page
+   here (#3d2626 vs #2b1b1c), the mirror of what the sand theme does. */
+[data-theme="night"]{
+  --bg: var(--night);
+  --fg: #f6e5d8;
+  --panel: #3d2626;
+  --accent: var(--tan);
+  --accent-contrast: var(--ink);
+  --code-str: #f2c48a;
+  --panel-fg: var(--fg);
+  --panel-accent: var(--tan);
+  --panel-accent-contrast: var(--ink);
+  --panel-line: var(--fg);
+  --panel-shadow: var(--fg);
+  /* dark page: the CRT overlay can run at its original strength */
+  --scan-opacity: .55;
+  --dither-opacity: .06;
+  --dim-soft: .75;
+  --dim-page: .75;   /* 8.04:1 — the dark page has headroom to dim */
+  --chip-bg: color-mix(in srgb,var(--fg) 28%,transparent);
+  --chip-panel-bg: color-mix(in srgb,var(--panel-fg) 28%,transparent);
+  --track-bg: color-mix(in srgb,var(--panel-fg) 35%,transparent);
+  --photo-backdrop: #2f2020;
+  --photo-lightbox-border: var(--fg);
+  --photo-frame-line: var(--fg);
+  --photo-frame-shadow: var(--fg);
+  --lightbox-backdrop: color-mix(in srgb,var(--bg) 86%,transparent);
+  --dither-ink: var(--ink);
+  --pixel-shadow: color-mix(in srgb,var(--panel-shadow) 35%,transparent);
+  --title-shadow: var(--brand);
+  --brand-shadow: var(--bark);
+  /* Night keeps tan as its display accent. The exact avatar rose is 4.30:1
+     on --night — legal for large text (3:1), but tan is 7.19:1 and is the
+     established dark-theme accent, so rose would be a redesign rather than
+     a fix. Change this token if you want the brand rose on dark too. */
+  --brand: var(--tan);
+}
+
+*,*::before,*::after{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%;scrollbar-gutter:stable}
+body{
+  margin:0;
+  background:var(--bg);
+  color:var(--fg);
+  font-family:"Silkscreen",ui-monospace,monospace;
+  font-size:var(--t-body);
+  line-height:1.7;
+  overflow-x:hidden;
+  -webkit-font-smoothing:antialiased;
+}
+img{display:block;max-width:100%;image-rendering:auto}
+a{color:inherit}
+h1,h2,h3,p,figure,ul{margin:0}
+ul{padding:0;list-style:none}
+button{font:inherit;color:inherit;background:none;border:0;cursor:pointer}
+
+/* CRT scanlines — 2px on, 2px off, locked to the pixel grid.
+   Strength is per-theme: on the light rose surface these read as grey
+   banding over body copy rather than phosphor glow, so --scan-opacity is
+   roughly halved there. */
+body::before{
+  content:"";position:fixed;inset:0;z-index:98;pointer-events:none;
+  background:repeating-linear-gradient(
+    to bottom, var(--scan-ink) 0 2px, transparent 2px 4px);
+  opacity:var(--scan-opacity);
+}
+/* dither texture: a real 2x2 checkerboard, not a gradient */
+body::after{
+  content:"";position:fixed;inset:0;z-index:97;pointer-events:none;
+  opacity:var(--dither-opacity);
+  background-image:
+    linear-gradient(45deg,var(--dither-ink) 25%,transparent 25% 75%,var(--dither-ink) 75%),
+    linear-gradient(45deg,var(--dither-ink) 25%,transparent 25% 75%,var(--dither-ink) 75%);
+  background-size:4px 4px;
+  background-position:0 0,2px 2px;
+}
+
+.px-font{
+  font-family:"Press Start 2P",ui-monospace,monospace;
+  font-weight:400;line-height:1.5;letter-spacing:0;
+}
+.label{
+  font-family:"Press Start 2P",monospace;
+  font-size:var(--t-label);line-height:1.6;text-transform:uppercase;
+}
+.micro{font-family:"Press Start 2P",monospace;font-size:var(--t-micro);line-height:1.7;text-transform:uppercase}
+/* .dim on the page uses --dim-page; inside a panel the override below
+   switches it to --dim-soft, because the two surfaces have different
+   contrast headroom to spend. */
+.dim{opacity:var(--dim-page)}
+.pbox .dim,.ticker .dim,.work .dim,.card .dim{opacity:var(--dim-soft)}
+.blink{animation:blink 1s steps(1) infinite}
+@keyframes blink{50%{opacity:0}}
+
+.pbox{
+  position:relative;
+  background:var(--panel);
+  color:var(--panel-fg);
+  box-shadow:
+    calc(-1 * var(--px)) 0 0 0 var(--fg),
+    var(--px) 0 0 0 var(--fg),
+    0 calc(-1 * var(--px)) 0 0 var(--fg),
+    0 var(--px) 0 0 var(--fg);
+}
+.pbox-raise{
+  box-shadow:
+    calc(-1 * var(--px)) 0 0 0 var(--fg),
+    var(--px) 0 0 0 var(--fg),
+    0 calc(-1 * var(--px)) 0 0 var(--fg),
+    0 var(--px) 0 0 var(--fg),
+    calc(3 * var(--px)) calc(3 * var(--px)) 0 0 var(--panel-shadow);
+}
+
+.wrap{max-width:1440px;margin-inline:auto;padding-inline:var(--gutter)}
+
+header{position:sticky;top:0;z-index:80;background:var(--bg);
+  box-shadow:0 var(--px) 0 0 var(--fg)}
+body.photos-page header{z-index:100}
+.nav{position:relative;display:flex;align-items:center;justify-content:space-between;gap:12px;
+  padding-block:10px}
+.brand{display:flex;align-items:center;gap:12px;text-decoration:none}
+.brand img{width:36px;height:36px;flex:none;animation:bob 1.4s steps(1) infinite alternate}
+.brand img,.hero-art img,footer img{image-rendering:pixelated}
+.brand-name{font-family:"Press Start 2P",monospace;font-size:var(--t-label);text-transform:uppercase}
+.nav-links{display:flex;align-items:center;gap:clamp(10px,2vw,28px)}
+.nav-links a{
+  font-family:"Press Start 2P",monospace;font-size:var(--t-micro);
+  text-transform:uppercase;text-decoration:none;
+  padding:12px 8px;min-height:44px;display:inline-flex;align-items:center;
+}
+.nav-links a.active{
+  color:var(--accent);
+}
+.nav-links a:hover,.nav-links a:focus-visible{
+  color:var(--accent);
+  background:var(--chip-bg);
+}
+.menu-toggle{display:none;font-family:"Press Start 2P",monospace;font-size:var(--t-micro);
+  text-transform:uppercase;min-height:44px;padding:10px 12px;
+  color:var(--fg);box-shadow:
+    calc(-1 * var(--px)) 0 0 0 var(--fg), var(--px) 0 0 0 var(--fg),
+    0 calc(-1 * var(--px)) 0 0 var(--fg), 0 var(--px) 0 0 var(--fg)}
+.menu-toggle:hover,.menu-toggle:focus-visible{background:var(--accent);color:var(--accent-contrast)}
+@media (max-width:900px){
+  .nav{padding-block:8px}
+  .brand{gap:8px}
+  .brand img{width:32px;height:32px}
+  .nav-links{display:none;position:absolute;z-index:2;top:100%;right:var(--gutter);
+    left:var(--gutter);padding:8px;background:var(--panel);color:var(--panel-fg);
+    box-shadow:
+      calc(-1 * var(--px)) 0 0 0 var(--fg), var(--px) 0 0 0 var(--fg),
+      0 calc(-1 * var(--px)) 0 0 var(--fg), 0 var(--px) 0 0 var(--fg),
+      0 calc(2 * var(--px)) 0 0 var(--panel-shadow)}
+  .nav-links.is-open{display:grid;gap:2px}
+  .nav-links a.hide-sm{display:inline-flex}
+  .nav-links a{min-height:48px;padding:12px 14px}
+  .nav-links .toggle{width:36px;height:36px;margin:6px 6px 4px auto}
+  .menu-toggle{display:inline-flex;align-items:center;justify-content:center}
+  .menu-toggle.is-open{background:var(--accent);color:var(--accent-contrast)}
+}
+
+.btn{
+  display:inline-flex;align-items:center;gap:10px;
+  font-family:"Press Start 2P",monospace;font-size:var(--t-micro);
+  text-transform:uppercase;text-decoration:none;
+  padding:16px 20px;min-height:48px;
+  background:var(--fg);color:var(--bg);
+  border:0;
+  box-shadow:
+    calc(-1 * var(--px)) 0 0 0 var(--fg), var(--px) 0 0 0 var(--fg),
+    0 calc(-1 * var(--px)) 0 0 var(--fg), 0 var(--px) 0 0 var(--fg),
+    0 0 0 0 transparent;
+  transition:none;
+}
+.btn:hover{background:var(--accent);color:var(--accent-contrast);
+  box-shadow:
+    calc(-1 * var(--px)) 0 0 0 var(--accent), var(--px) 0 0 0 var(--accent),
+    0 calc(-1 * var(--px)) 0 0 var(--accent), 0 var(--px) 0 0 var(--accent),
+    0 0 0 0 transparent;
+}
+.btn:active{transform:translate(var(--px),var(--px));
+  box-shadow:
+    calc(-1 * var(--px)) 0 0 0 var(--accent), var(--px) 0 0 0 var(--accent),
+    0 calc(-1 * var(--px)) 0 0 var(--accent), 0 var(--px) 0 0 var(--accent);
+}
+.btn-ghost{background:transparent;color:var(--fg);
+  box-shadow:
+    calc(-1 * var(--px)) 0 0 0 var(--fg), var(--px) 0 0 0 var(--fg),
+    0 calc(-1 * var(--px)) 0 0 var(--fg), 0 var(--px) 0 0 var(--fg),
+    0 0 0 0 transparent;
+}
+.toggle{
+  font-family:"Press Start 2P",monospace;font-size:var(--t-micro);
+  text-transform:uppercase;padding:0;min-height:36px;
+  width:36px;height:36px;
+  display:inline-flex;align-items:center;justify-content:center;
+  background:transparent;
+  box-shadow:
+    calc(-1 * var(--px)) 0 0 0 var(--fg), var(--px) 0 0 0 var(--fg),
+    0 calc(-1 * var(--px)) 0 0 var(--fg), 0 var(--px) 0 0 var(--fg);
+}
+.toggle::after{
+  content:"";
+  font-family:Arial,sans-serif;font-size:24px;line-height:1;
+}
+.toggle[data-icon="sun"]::after{content:"\2600"}
+.toggle[data-icon="moon"]::after{content:"\263E"}
+.toggle:hover{
+  background:var(--accent);color:var(--accent-contrast);
+  box-shadow:
+    calc(-1 * var(--px)) 0 0 0 var(--accent), var(--px) 0 0 0 var(--accent),
+    0 calc(-1 * var(--px)) 0 0 var(--accent), 0 var(--px) 0 0 var(--accent);
+}
+.toggle:active{transform:translate(var(--px),var(--px))}
+
+.hero{
+  display:grid;grid-template-columns:minmax(0,1.15fr) minmax(0,.85fr);
+  align-items:center;gap:clamp(16px,4vw,56px);
+  padding-block:clamp(28px,6vw,72px) clamp(40px,8vw,96px);
+}
+@media (max-width:900px){
+  .hero{grid-template-columns:1fr;padding-block:20px 48px}
+  .hero-art{order:-1}
+}
+.hero h1{
+  font-family:"Press Start 2P",monospace;
+  font-size:var(--t-hero);line-height:1.45;
+  margin-block:20px 0;
+  text-shadow:none;
+}
+.hero h1 span{color:var(--brand);display:inline-block}
+.hero h1 span,.contact h2 span{text-shadow:none}
+.hero-sub{max-width:44ch;margin-top:24px;font-size:var(--t-lead);line-height:1.6}
+.cta-row{display:flex;flex-wrap:wrap;gap:16px;margin-top:32px}
+
+@media (max-width:640px){
+  .hero{padding-block:28px 36px;gap:24px}
+  .hero h1{font-size:clamp(1.05rem,7.2vw,1.65rem);line-height:1.55;
+    overflow-wrap:anywhere}
+  .hero-sub{max-width:100%;margin-top:20px;font-size:clamp(.95rem,4.7vw,1.2rem);
+    line-height:1.7;overflow-wrap:anywhere}
+  .cta-row{gap:12px;margin-top:24px}
+  .cta-row .btn{flex:1 1 140px;justify-content:center;padding-inline:12px}
+  .sec-head{padding-top:40px;padding-bottom:18px}
+}
+
+.hero-art{position:relative;justify-self:center;width:min(100%,480px);
+  aspect-ratio:4/3;overflow:hidden}
+.hero-art img{
+  position:absolute;inset:0;margin:auto;width:82%;
+  height:auto;
+  animation:bob 1.4s steps(1) infinite alternate;
+  filter:drop-shadow(var(--px) var(--px) 0 var(--pixel-shadow));
+}
+@media (max-width:900px){
+  .hero-art{width:min(78vw,360px)}
+  .hero-art img{width:78%}
+}
+@keyframes bob{from{transform:translateY(0)}to{transform:translateY(-8px)}}
+
+.ticker{overflow:hidden;padding-block:14px;background:var(--panel);
+  color:var(--panel-fg);
+  box-shadow:0 calc(-1 * var(--px)) 0 0 var(--fg), 0 var(--px) 0 0 var(--fg)}
+.ticker-track{display:flex;width:max-content;animation:slide 40s linear infinite}
+.ticker-track span{
+  font-family:"Press Start 2P",monospace;font-size:var(--t-micro);
+  text-transform:uppercase;white-space:nowrap;padding-inline:20px;
+}
+.ticker-track span::after{content:"\25C6";margin-left:20px;color:var(--panel-accent)}
+@keyframes slide{to{transform:translateX(-50%)}}
+
+.sec-head{display:flex;align-items:center;justify-content:space-between;
+  gap:16px;flex-wrap:wrap;
+  padding-top:clamp(48px,9vw,104px);padding-bottom:24px}
+.sec-head h2{font-family:"Press Start 2P",monospace;font-size:var(--t-h2);
+  text-transform:uppercase;text-shadow:none}
+
+.work-list{display:grid;gap:calc(var(--px) * 6)}
+.work{
+  display:grid;
+  grid-template-columns:auto minmax(0,1fr) auto;
+  align-items:center;gap:clamp(12px,2.4vw,28px);
+  padding:clamp(16px,2.4vw,26px);
+  text-decoration:none;
+  background:var(--panel);
+  color:var(--panel-fg);
+  box-shadow:
+    calc(-1 * var(--px)) 0 0 0 var(--fg), var(--px) 0 0 0 var(--fg),
+    0 calc(-1 * var(--px)) 0 0 var(--fg), 0 var(--px) 0 0 var(--fg),
+    0 0 0 0 transparent;
+}
+.work:hover,.work:focus-visible{
+  background:var(--panel-accent);color:var(--panel-accent-contrast);
+  transform:translate(calc(-1 * var(--px)),calc(-1 * var(--px)));
+  box-shadow:
+    calc(-1 * var(--px)) 0 0 0 var(--panel-accent), var(--px) 0 0 0 var(--panel-accent),
+    0 calc(-1 * var(--px)) 0 0 var(--panel-accent), 0 var(--px) 0 0 var(--panel-accent),
+    0 0 0 0 transparent;
+}
+.work-num{font-family:"Press Start 2P",monospace;font-size:var(--t-label);
+  color:var(--panel-accent);align-self:start;padding-top:4px}
+.work:hover .work-num{color:var(--panel-accent-contrast)}
+.work-body{min-width:0}
+.work-title{font-family:"Press Start 2P",monospace;font-size:var(--t-h3);
+  line-height:1.5;display:block}
+.work-desc{margin-top:10px;font-size:var(--t-body);opacity:.85;max-width:60ch}
+.work-desc code{font-family:"Press Start 2P",monospace;font-size:.62em;
+  padding:2px 4px;background:var(--chip-panel-bg);white-space:nowrap}
+.work:hover .work-desc code{background:var(--chip-panel-bg)}
+.work-tags{margin-top:12px;display:flex;flex-wrap:wrap;gap:8px}
+.work-tags i{
+  font-style:normal;font-family:"Press Start 2P",monospace;font-size:var(--t-micro);
+  text-transform:uppercase;padding:6px 8px;
+  box-shadow:0 0 0 2px currentColor;opacity:.8;
+}
+.work .go{font-family:"Press Start 2P",monospace;font-size:var(--t-label);
+  color:var(--panel-accent);white-space:nowrap}
+.work:hover .go{color:var(--panel-accent-contrast)}
+.work:hover .go::after{content:"\25B8";margin-left:6px}
+@media (max-width:760px){
+  .work{grid-template-columns:auto minmax(0,1fr);row-gap:10px}
+  .work .go{grid-column:2;justify-self:start}
+  .work-desc code{white-space:normal;overflow-wrap:anywhere;word-break:break-word}
+}
+div.work{cursor:default}
+div.work:hover{
+  background:var(--panel);color:inherit;transform:none;
+  box-shadow:
+    calc(-1 * var(--px)) 0 0 0 var(--fg), var(--px) 0 0 0 var(--fg),
+    0 calc(-1 * var(--px)) 0 0 var(--fg), 0 var(--px) 0 0 var(--fg),
+    0 0 0 0 transparent;
+}
+div.work:hover .work-num{color:var(--panel-accent)}
+div.work .go{color:var(--panel-fg);opacity:var(--dim-soft)}
+div.work:hover .go{color:var(--panel-fg);opacity:var(--dim-soft)}
+div.work:hover .go::after{content:""}
+
+.up-list{display:grid;gap:0;box-shadow:0 calc(-1 * var(--px)) 0 0 var(--fg)}
+.up{
+  display:grid;
+  grid-template-columns:minmax(0,15rem) minmax(0,1fr) auto;
+  align-items:baseline;gap:clamp(10px,2vw,24px);
+  padding:clamp(14px,1.8vw,20px) 0;
+  text-decoration:none;color:inherit;
+  box-shadow:0 var(--px) 0 0 var(--fg);
+}
+.up-proj{font-family:"Press Start 2P",monospace;font-size:var(--t-label);
+  color:var(--accent);line-height:1.6}
+.up-what{font-size:var(--t-body);opacity:var(--dim-page);line-height:1.6}
+.up-what code{font-family:"Press Start 2P",monospace;font-size:.62em;
+  padding:2px 4px;background:var(--chip-bg);white-space:nowrap}
+.up-ref{font-family:"Press Start 2P",monospace;font-size:var(--t-micro);
+  opacity:var(--dim-page);white-space:nowrap}
+a.up:hover .up-what,a.up:focus-visible .up-what{opacity:1;text-decoration:underline;
+  text-underline-offset:4px}
+a.up:hover .up-ref{opacity:1;color:var(--accent)}
+.up-plain{cursor:default}
+@media (max-width:760px){
+  .up{grid-template-columns:minmax(0,1fr) auto;row-gap:6px}
+  .up-what{grid-column:1 / -1}
+}
+
+.about{display:grid;grid-template-columns:minmax(0,1.2fr) minmax(0,.8fr);
+  gap:clamp(24px,5vw,64px);padding-block:8px;
+  /* the card must size to its own content. The default `stretch` makes it
+     match the height of the prose column beside it, which left a large
+     dead gap under the last stat once the copy shortened. */
+  align-items:start}
+@media (max-width:900px){ .about{grid-template-columns:1fr} }
+.about p{font-size:var(--t-lead);line-height:1.65;max-width:56ch}
+.about p + p{margin-top:1em}
+
+.card{padding:clamp(18px,2.6vw,28px)}
+.card h3{font-family:"Press Start 2P",monospace;font-size:var(--t-label);
+  text-transform:uppercase;color:var(--panel-accent);margin-bottom:20px}
+.stat + .stat{margin-top:18px}
+.stat-top{display:flex;justify-content:space-between;gap:10px;
+  font-family:"Press Start 2P",monospace;font-size:var(--t-micro);
+  text-transform:uppercase;margin-bottom:8px}
+.bar{position:relative;height:16px;background:var(--track-bg);
+  box-shadow:0 0 0 2px var(--panel-line)}
+.bar i{display:block;height:100%;background:var(--panel-accent);
+  transition:width .6s var(--step)}
+.bar::after{
+  content:"";position:absolute;inset:0;pointer-events:none;
+  background:repeating-linear-gradient(to right,
+    transparent 0 calc(5% - 2px), var(--panel) calc(5% - 2px) 5%);
+}
+/* footnote under the bars — deliberately smaller than the labels so it
+   annotates the data instead of competing with it.
+   NOTE: needs `.card` prefix to outrank `.about p` (0,1,1), which would
+   otherwise impose --t-lead on this paragraph. */
+.card .stat-note{
+  margin:0 0 18px;
+  font-family:"Press Start 2P",monospace;
+  font-size:calc(var(--t-micro) * .82);
+  line-height:2;opacity:var(--dim-soft);text-transform:uppercase;
+}
+.links{margin-top:24px;display:grid;gap:10px}
+.links a{font-family:"Press Start 2P",monospace;font-size:var(--t-micro);
+  text-transform:uppercase;text-decoration:none;padding:10px 0;
+  display:flex;align-items:center;gap:8px;min-height:44px}
+.links a::before{content:"\25B8";color:var(--panel-accent)}
+.links a:hover{color:var(--panel-accent)}
+
+.contact{text-align:center;padding-block:clamp(48px,9vw,104px) clamp(24px,4vw,48px)}
+.contact h2{font-family:"Press Start 2P",monospace;font-size:var(--t-mega);
+  line-height:1.45;text-shadow:none}
+.contact h2 span{color:var(--brand)}
+.contact-sub{margin-top:36px;display:flex;flex-wrap:wrap;gap:16px;justify-content:center}
+
+footer{display:flex;flex-wrap:wrap;gap:14px;justify-content:space-between;
+  align-items:center;padding-block:24px 36px;
+  box-shadow:0 calc(-1 * var(--px)) 0 0 var(--fg)}
+footer img{width:24px;height:24px}
+
+.reveal{opacity:1;transform:none}
+.reveal.in{opacity:1;transform:none}
+
+:focus-visible{outline:var(--px) solid var(--accent);outline-offset:var(--px)}
+html{scroll-behavior:smooth}
+#work,#upstream,#about,#contact{scroll-margin-top:96px}
+
+@media (prefers-reduced-motion:reduce){
+  html{scroll-behavior:auto}
+  *,*::before,*::after{animation:none!important;transition-duration:.01ms!important}
+  .reveal{opacity:1;transform:none}
+}
+
+.post-list{display:grid;gap:0;box-shadow:0 calc(-1 * var(--px)) 0 0 var(--fg)}
+.post{
+  display:grid;grid-template-columns:auto minmax(0,1fr);
+  align-items:baseline;gap:clamp(10px,2vw,24px);
+  padding:clamp(16px,2vw,22px) 0;
+  text-decoration:none;color:inherit;
+  box-shadow:0 var(--px) 0 0 var(--fg);
+}
+.post-date{font-family:"Press Start 2P",monospace;font-size:var(--t-micro);
+  color:var(--accent);white-space:nowrap;line-height:1.8}
+.post-title{font-family:"Press Start 2P",monospace;font-size:var(--t-h3);
+  line-height:1.5;display:block}
+.post-sum{margin-top:10px;font-size:var(--t-body);opacity:var(--dim-page);max-width:62ch}
+.post-tags{margin-top:12px;display:flex;flex-wrap:wrap;gap:8px}
+.post-tags i{font-style:normal;font-family:"Press Start 2P",monospace;
+  font-size:var(--t-micro);text-transform:uppercase;padding:6px 8px;
+  box-shadow:0 0 0 2px currentColor;opacity:var(--dim-page)}
+.post:hover .post-title,.post:focus-visible .post-title{color:var(--accent)}
+.post:hover .post-sum{opacity:1}
+@media (max-width:760px){
+  .post{grid-template-columns:minmax(0,1fr)}
+  .post-date{margin-bottom:4px}
+}
+
+.article{max-width:70ch;margin-inline:auto}
+.article-head{margin-bottom:clamp(28px,4vw,48px)}
+.article-head h1{
+  font-family:"Press Start 2P",monospace;
+  font-size:clamp(1.15rem,.6rem + 2.2vw,2.1rem);
+  line-height:1.6;margin-top:14px;
+}
+.article-meta{font-family:"Press Start 2P",monospace;font-size:var(--t-micro);
+  color:var(--accent);text-transform:uppercase}
+.article-body{font-size:var(--t-lead);line-height:1.75}
+.article-body > * + *{margin-top:1.15em}
+.article-body h2,.article-body h3{
+  font-family:"Press Start 2P",monospace;line-height:1.6;
+  margin-top:2em;margin-bottom:.2em;
+}
+.article-body h2{font-size:clamp(.95rem,.5rem + 1.1vw,1.3rem)}
+.article-body h3{font-size:clamp(.8rem,.45rem + .7vw,1rem);opacity:var(--dim-page)}
+.article-body a{color:var(--accent);text-underline-offset:4px}
+.article-body ul,.article-body ol{padding-left:1.4em}
+.article-body ul{list-style:square}
+.article-body ol{list-style:decimal}
+.article-body li + li{margin-top:.45em}
+.article-body li::marker{color:var(--accent)}
+.article-body strong{color:var(--accent)}
+.article-body blockquote{
+  margin-left:0;padding:14px 18px;background:var(--panel);
+  color:var(--panel-fg);
+  box-shadow:calc(-1 * var(--px)) 0 0 0 var(--panel-accent);
+}
+.article-body img{max-width:100%;height:auto}
+.article-body hr{border:0;height:var(--px);background:var(--fg);opacity:.5;margin-block:2em}
+
+.article-body code{
+  font-family:"IBM Plex Mono",ui-monospace,Menlo,Consolas,monospace;
+  font-size:.86em;font-weight:600;
+  padding:2px 6px;background:var(--panel);color:var(--panel-fg);
+  white-space:nowrap;
+}
+.article-body pre{
+  /* Press Start 2P has no useful glyph metrics for code — real monospace
+     here, and never `pixelated` type inside a scrolling block. */
+  font-family:"IBM Plex Mono",ui-monospace,Menlo,Consolas,monospace;
+  font-size:.82rem;line-height:1.7;
+  padding:clamp(14px,2vw,20px);overflow-x:auto;
+  background:var(--panel);
+  color:var(--panel-fg);
+  box-shadow:
+    calc(-1 * var(--px)) 0 0 0 var(--fg), var(--px) 0 0 0 var(--fg),
+    0 calc(-1 * var(--px)) 0 0 var(--fg), 0 var(--px) 0 0 var(--fg),
+    calc(2 * var(--px)) calc(2 * var(--px)) 0 0 var(--photo-frame-shadow);
+}
+.article-body pre code{
+  font-family:inherit;font-size:inherit;padding:0;background:none;
+  white-space:pre;
+}
+.article-body table{border-collapse:collapse;width:100%;font-size:var(--t-body)}
+.article-body th,.article-body td{
+  padding:10px 12px;text-align:left;box-shadow:0 var(--px) 0 0 var(--fg);
+}
+.article-body th{font-family:"Press Start 2P",monospace;
+  font-size:var(--t-micro);text-transform:uppercase;color:var(--accent)}
+
+.article-body .footnote{font-size:var(--t-body);opacity:var(--dim-page);margin-top:3em}
+.article-body .footnote hr{margin-bottom:1em}
+
+.article-nav{margin-top:clamp(40px,6vw,72px);display:flex;
+  flex-wrap:wrap;gap:16px;align-items:center}
+
+.article-body .highlight{background:none}
+.article-body .c,.article-body .c1,.article-body .cm,.article-body .ch{opacity:.72;font-style:italic}
+.article-body .k,.article-body .kd,.article-body .kn,.article-body .kc{color:var(--panel-accent);font-weight:700}
+.article-body .s,.article-body .s1,.article-body .s2,.article-body .sb{color:var(--code-str)}
+.article-body .nf,.article-body .fm{color:var(--panel-fg);font-weight:700}
+.article-body .nb{opacity:.9}
+.article-body .mi,.article-body .mf{color:var(--code-str)}
+.article-body .o,.article-body .p{opacity:.7}
+.article-body .nd{color:var(--panel-accent);opacity:.85}
+
+.photo-intro{max-width:58ch;font-size:var(--t-lead);line-height:1.6;
+  opacity:var(--dim-page)}
+.photo-grid{columns:3;column-gap:clamp(20px,3vw,40px);
+  margin-top:clamp(28px,5vw,56px)}
+.photo-card{break-inside:avoid;width:100%;min-width:0;
+  margin:0 auto clamp(32px,5vw,56px)}
+.photo-frame{position:relative;z-index:99;padding:var(--px);background:var(--photo-backdrop);
+  box-shadow:
+    calc(-1 * var(--px)) 0 0 0 var(--photo-frame-line),
+    var(--px) 0 0 0 var(--photo-frame-line),
+    0 calc(-1 * var(--px)) 0 0 var(--photo-frame-line),
+    0 var(--px) 0 0 var(--photo-frame-line),
+    calc(2 * var(--px)) calc(2 * var(--px)) 0 0 var(--panel-shadow);
+  transition:transform .2s var(--step),box-shadow .2s var(--step)}
+.photo-card:hover .photo-frame,.photo-card:focus-within .photo-frame{
+  transform:translate(calc(-1 * var(--px)),calc(-1 * var(--px)));
+  box-shadow:
+    calc(-1 * var(--px)) 0 0 0 var(--panel-accent),
+    var(--px) 0 0 0 var(--panel-accent),
+    0 calc(-1 * var(--px)) 0 0 var(--panel-accent),
+    0 var(--px) 0 0 var(--panel-accent),
+    calc(3 * var(--px)) calc(3 * var(--px)) 0 0 var(--photo-frame-shadow)}
+.photo-frame img{width:100%;height:auto;
+  background:var(--photo-backdrop)}
+.photo-open{display:block;cursor:zoom-in}
+.photo-frame video{display:block;width:100%;height:auto;
+  background:var(--photo-backdrop)}
+.photo-caption{display:flex;justify-content:space-between;gap:16px;
+  align-items:baseline;margin-top:16px}
+.photo-title{font-family:"Press Start 2P",monospace;font-size:var(--t-label);
+  line-height:1.6;text-transform:uppercase}
+.photo-place{font-size:var(--t-micro);opacity:var(--dim-page);text-align:right}
+.photo-meta{display:flex;flex-wrap:wrap;gap:8px;margin-top:10px}
+.photo-meta span{font-family:"Press Start 2P",monospace;font-size:var(--t-micro);
+  line-height:1.5;text-transform:uppercase;padding:6px 8px;
+  background:var(--chip-bg);box-shadow:0 0 0 2px var(--fg)}
+.photo-meta span::before{color:var(--accent)}
+.photo-camera::before{content:"CAM · ";}
+.photo-film::before{content:"FILM · ";}
+.photo-lightbox{width:fit-content;max-width:88vw;max-height:94vh;
+  box-sizing:border-box;overflow:hidden;padding:0;border:0;
+  background:var(--panel);color:var(--panel-fg);
+  box-shadow:
+    calc(-1 * var(--px)) 0 0 0 var(--photo-lightbox-border),
+    var(--px) 0 0 0 var(--photo-lightbox-border),
+    0 calc(-1 * var(--px)) 0 0 var(--photo-lightbox-border),
+    0 var(--px) 0 0 var(--photo-lightbox-border)}
+.photo-lightbox::backdrop{
+  background:var(--lightbox-backdrop);
+}
+.photo-lightbox-body{display:grid;gap:12px;width:fit-content;
+  max-width:100%;max-height:94vh}
+.photo-lightbox-body img{display:block;width:auto;max-width:100%;height:auto;
+  max-height:calc(94vh - 190px);margin-inline:auto;
+  object-fit:contain;background:var(--photo-backdrop)}
+.photo-lightbox-caption{text-align:center;font-size:var(--t-micro);
+  line-height:1.8;text-transform:uppercase}
+.photo-lightbox-caption div:empty{display:none}
+.photo-lightbox-caption div:first-child{font-family:"Press Start 2P",monospace;
+  font-size:var(--t-label)}
+.photo-lightbox-caption .photo-meta{justify-content:center;margin-top:8px}
+.photo-lightbox-caption .photo-meta span:empty{display:none}
+.photo-lightbox-actions{display:flex;justify-content:center;
+  flex-wrap:wrap;gap:24px;padding-block:4px 8px}
+@media (max-width:760px){
+  .photo-grid{columns:1}
+  .photo-card{width:100%;margin-bottom:40px}
+  .photo-lightbox{max-width:calc(100vw - 24px)}
+  .photo-lightbox-body{width:100%}
+  .photo-lightbox-body img{max-height:calc(100vh - 220px)}
+  .photo-lightbox-actions{gap:12px;padding-inline:12px}
+}
+@media (min-width:761px) and (max-width:1000px){
+  .photo-grid{columns:2}
+  .photo-caption{display:block}
+  .photo-place{text-align:left;margin-top:6px}
+}

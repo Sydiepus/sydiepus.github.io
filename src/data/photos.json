@@ -1,0 +1,129 @@
+{
+  "title": "Photos",
+  "description": "A small collection of photographs by Sydiepus.",
+  "intro": "Little moments, scanned from film (or taken on my phone) and kept in pixels. Every frame includes the camera and stock it came from.",
+  "entries": [
+    {
+      "title": "Quote",
+      "place": "",
+      "image": "assets/photos/5850733484773675065.jpg",
+      "alt": "Work hard dream big",
+      "camera": "Canon Prima BF-80",
+      "film": "Fujifilm 200"
+    },
+    {
+      "title": "Directions please!",
+      "place": "",
+      "image": "assets/photos/5850733484773675064.jpg",
+      "alt": "Directions",
+      "camera": "Canon Prima BF-80",
+      "film": "Fujifilm 200"
+    },
+    {
+      "title": "The grass will consume you",
+      "place": "",
+      "image": "assets/photos/5850733484773675063.jpg",
+      "alt": "Grassy tower",
+      "camera": "Redishoot 35",
+      "film": "Fujifilm 400"
+    },
+    {
+      "title": "The silent watchers",
+      "place": "",
+      "image": "assets/photos/5850733484773675062.jpg",
+      "alt": "Metal Giant",
+      "camera": "Redishoot 35",
+      "film": "Fujifilm 400"
+    },
+    {
+      "title": "Liminal space",
+      "place": "",
+      "image": "assets/photos/5850733484773675061.jpg",
+      "alt": "liminal space",
+      "camera": "Redishoot 35",
+      "film": "Fujifilm 400"
+    },
+    {
+      "title": "Snow!",
+      "place": "",
+      "image": "assets/photos/5850220751577878790.jpg",
+      "alt": "Snowy mountains",
+      "camera": "Redishoot 35",
+      "film": "Fujifilm 200"
+    },
+    {
+      "title": "Lamp post",
+      "place": "",
+      "image": "assets/photos/5850733484773675072.jpg",
+      "alt": "Lamp post on a turn",
+      "camera": "iPhone 16",
+      "film": "Digital"
+    },
+    {
+      "title": "Spiky field",
+      "place": "",
+      "image": "assets/photos/5850733484773675073.jpg",
+      "alt": "Spiky flower",
+      "camera": "iPhone 16",
+      "film": "Digital"
+    },
+    {
+      "title": "The metal giant is clouded",
+      "place": "",
+      "image": "assets/photos/5850733484773675074.jpg",
+      "alt": "Cloudy metal giant",
+      "camera": "iPhone 16",
+      "film": "Digital"
+    },
+    {
+      "title": "Quiet hours",
+      "place": "",
+      "image": "assets/photos/5850733484773675075.jpg",
+      "alt": "classroom",
+      "camera": "iPhone 16",
+      "film": "Digital"
+    },
+    {
+      "title": "F*U*N",
+      "place": "",
+      "image": "assets/photos/5850733484773675076.jpg",
+      "alt": "Aperol Spritz",
+      "camera": "iPhone 16",
+      "film": "Digital",
+      "app": "Dazz Camera"
+    },
+    {
+      "title": "Naked Tree",
+      "place": "",
+      "image": "assets/photos/5850733484773675077.jpg",
+      "alt": "Tree with no leaves",
+      "camera": "iPhone 16",
+      "film": "Digital"
+    },
+    {
+      "title": "Dead alley",
+      "place": "",
+      "image": "assets/photos/5850733484773675078.jpg",
+      "alt": "alley",
+      "camera": "iPhone 16",
+      "film": "Digital"
+    },
+    {
+      "title": "Gaslonine rainbow",
+      "place": "",
+      "image": "assets/photos/5850733484773675079.jpg",
+      "alt": "rainbow on the road",
+      "camera": "iPhone 16",
+      "film": "Digital"
+    },
+    {
+      "title": "Chair!",
+      "place": "",
+      "image": "assets/photos/video5850733484313682056.mp4",
+      "alt": "Gif of a chair",
+      "camera": "iPhone 16",
+      "film": "Digital",
+      "app": "Dazz Camera"
+    }
+  ]
+}

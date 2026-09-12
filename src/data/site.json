@@ -1,0 +1,124 @@
+{
+  "site": {
+    "name": "Sydiepus",
+    "title": "Sydiepus",
+    "description": "Hey there, I am Sydie. I love knowledge, mainly engineering.",
+    "author": "Sydiepus",
+    "canonical": "https://sydiepus.github.io/",
+    "og_image": "https://avatars.githubusercontent.com/u/49863809?v=4"
+  },
+  "blog": {
+    "title": "Blog",
+    "description": "Notes on Python, Linux, and things I took apart.",
+    "all_posts_label": "All posts",
+    "home_label": "Home",
+    "empty_message": "Nothing here yet.",
+    "reading_time_suffix": "min",
+    "post_count_label": "post",
+    "posts_count_label": "posts"
+  },
+  "navigation": [
+    {"label": "Home", "href": "#", "key": "home"},
+    {"label": "Projects", "href": "#work"},
+    {"label": "Upstream", "href": "#upstream", "hide_small": true},
+    {"label": "whoami", "href": "#about", "hide_small": true},
+    {"label": "Contact", "href": "#contact", "hide_small": true},
+    {"label": "Photos", "href": "photos.html", "key": "photos"},
+    {"label": "Blog", "href": "blog.html", "key": "blog"}
+  ],
+  "hero": {
+    "eyebrow": "Sydiepus - python · linux · hardware",
+    "title_before": "I love knowledge, mainly ",
+    "title_accent": "engineering.",
+    "subtitle": "I like to learn, hack, and break things.",
+    "projects_label": "View projects",
+    "github_label": "GitHub",
+    "github_url": "https://github.com/Sydiepus"
+  },
+  "projects": [
+    {
+      "name": "Divergence Meter",
+      "description": "Steins;Gate divergence meter on a budget built with 7-segment displays.",
+      "tags": ["Steins;Gate", "Embedded", "7 Seg Display"],
+      "status": "In Progress"
+    },
+    {
+      "name": "Manrododex",
+      "description": "A MangaDex downloader on their v5 API - the object-oriented rewrite of mangadex-py, with threading, proper packaging and published docs.",
+      "tags": ["Python", "Threading", "★ 2"],
+      "status": "Open",
+      "url": "https://github.com/Sydiepus/Manrododex"
+    },
+    {
+      "name": "microgradv",
+      "description": "A scalar-valued autograd engine with a small neural-net library on top, written in V to learn backprop and a new language at the same time.",
+      "code": "v install Sydiepus.microgradv",
+      "tags": ["V", "Autograd", "★ 1"],
+      "status": "Open",
+      "url": "https://github.com/Sydiepus/microgradv"
+    },
+    {
+      "name": "PUBG Config Converter",
+      "description": "A decoder/encoder for PUBG Mobile's UserCustom.ini. Reverse-engineered a binary config format for fun - and it became my most-starred repo.",
+      "tags": ["Python", "Reverse eng.", "★ 7"],
+      "status": "Open",
+      "url": "https://github.com/Sydiepus/PUBG-Mobile-configuration-converter"
+    }
+  ],
+  "upstream": {
+    "heading": "Upstream",
+    "label": "patches to other people's software",
+    "entries": [
+      {
+        "project": "GNOME / Mutter",
+        "what": "Wayland idle-inhibit protocol in the compositor",
+        "ref": "!3145",
+        "url": "https://gitlab.gnome.org/GNOME/mutter/-/merge_requests/3145"
+      },
+      {
+        "project": "pywlroots",
+        "what": "Added the idle_notify_v1 protocol",
+        "code": "idle_notify_v1",
+        "ref": "#118",
+        "url": "https://github.com/flacjacket/pywlroots/pull/118"
+      },
+      {
+        "project": "pywlroots",
+        "what": "Exposed wlr_keyboard_notify_modifiers for Qtile",
+        "code": "wlr_keyboard_notify_modifiers",
+        "ref": "#123",
+        "url": "https://github.com/flacjacket/pywlroots/pull/123"
+      }
+    ]
+  },
+  "about": {
+    "heading": "whoami",
+    "label": "python › linux › hardware",
+    "paragraphs": [
+      "I like a lot of things, I hack, develop, build, and most importantly, I learn. I like to understand how things work.",
+      "In my free time, I like to read, books magazines, research anything really. On weekends, it's one of the many on going projects that I seem to not be able to finish. Or I just play video games.",
+      "And that's not all! I like to take photos, and fish, though I haven't caught anything worth mentioning I still enjoy it."
+    ],
+    "stats_heading": "Random stats",
+    "stats_note": "Proficiency in various things, measured in potatoes.",
+    "stats": [
+      {"label": "Procrastination", "value": 120},
+      {"label": "Programming", "value": 85},
+      {"label": "Electronics", "value": 60},
+      {"label": "Photography", "value": 55},
+      {"label": "SDR", "value": 10}
+    ],
+    "links": [
+    ]
+  },
+  "contact": {
+    "intro": "Why would you want to contact me?",
+    "heading_before": "Say ",
+    "heading_accent": "hello",
+    "github_url": "https://github.com/Sydiepus",
+    "email": "sydiepus@gmail.com"
+  },
+  "footer": {
+    "text": "Clankered"
+  }
+}

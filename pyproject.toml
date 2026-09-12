@@ -1,0 +1,16 @@
+[project]
+name = "sydiepus-site"
+version = "0.1.0"
+description = "Static site + markdown blog generator for the Sydiepus pixel site."
+requires-python = ">=3.13"
+dependencies = [
+    "imageio-ffmpeg>=0.6.0",
+    "markdown>=3.10",
+    "pillow>=12.0.0",
+    "pygments>=2.19",
+    "pyyaml>=6.0",
+]
+
+# Not an installable package — just a script + its deps.
+[tool.uv]
+package = false

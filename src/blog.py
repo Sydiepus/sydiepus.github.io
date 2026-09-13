@@ -18,6 +18,7 @@ def render_post(post, site: dict) -> str:
         depth=1,
         active="blog",
         page_type="article",
+        body_class="subpage",
     ) + f"""
 <main class="wrap" style="padding-block:clamp(28px,5vw,64px)">
   <article class="article">
@@ -71,7 +72,8 @@ def render_index(posts: list, site: dict) -> str:
         count = "empty"
 
     return render_head(site, f"{blog['title']} — {site['site']['name']}",
-                       blog["description"], active="blog") + f"""
+                       blog["description"], active="blog",
+                       body_class="subpage") + f"""
 <main class="wrap" style="padding-block:clamp(28px,5vw,64px)">
   <section>
     <div class="sec-head reveal">

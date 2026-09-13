@@ -88,7 +88,7 @@ def render_photos(site: dict, photos: dict) -> str:
         photos["title"],
         photos["description"],
         active="photos",
-        body_class="photos-page",
+        body_class="photos-page subpage",
     ) + f"""
 <main class="wrap" style="padding-block:clamp(28px,5vw,64px)">
   <section>

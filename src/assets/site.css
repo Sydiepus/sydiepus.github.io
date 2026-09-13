@@ -184,7 +184,11 @@
 }
 
 *,*::before,*::after{box-sizing:border-box}
-html{-webkit-text-size-adjust:100%;scrollbar-gutter:stable}
+html{
+  -webkit-text-size-adjust:100%;
+  scrollbar-gutter:stable;
+  overflow-x:clip;
+}
 body{
   margin:0;
   background:var(--bg);
@@ -192,7 +196,7 @@ body{
   font-family:"Silkscreen",ui-monospace,monospace;
   font-size:var(--t-body);
   line-height:1.7;
-  overflow-x:hidden;
+  overflow-x:clip;
   -webkit-font-smoothing:antialiased;
 }
 img{display:block;max-width:100%;image-rendering:auto}
@@ -260,7 +264,9 @@ body::after{
 
 .wrap{max-width:1440px;margin-inline:auto;padding-inline:var(--gutter)}
 
-header{position:sticky;top:0;z-index:80;background:var(--bg);
+header{
+  position:sticky;top:0;z-index:80;background:var(--bg);
+  padding-top:env(safe-area-inset-top);
   box-shadow:0 var(--px) 0 0 var(--fg)}
 body.photos-page header{z-index:100}
 .nav{position:relative;display:flex;align-items:center;justify-content:space-between;gap:12px;
@@ -419,6 +425,7 @@ body.photos-page header{z-index:100}
 .sec-head{display:flex;align-items:center;justify-content:space-between;
   gap:16px;flex-wrap:wrap;
   padding-top:clamp(48px,9vw,104px);padding-bottom:24px}
+.subpage .sec-head{padding-top:0}
 .sec-head h2{font-family:"Press Start 2P",monospace;font-size:var(--t-h2);
   text-transform:uppercase;text-shadow:none}
 
@@ -558,6 +565,7 @@ a.up:hover .up-ref{opacity:1;color:var(--accent)}
 
 footer{display:flex;flex-wrap:wrap;gap:14px;justify-content:space-between;
   align-items:center;padding-block:24px 36px;
+  padding-bottom:max(36px,env(safe-area-inset-bottom));
   box-shadow:0 calc(-1 * var(--px)) 0 0 var(--fg)}
 footer img{width:24px;height:24px}
 

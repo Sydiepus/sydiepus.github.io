@@ -187,7 +187,6 @@
 html{
   -webkit-text-size-adjust:100%;
   scrollbar-gutter:stable;
-  overflow-x:clip;
 }
 body{
   margin:0;
@@ -196,9 +195,15 @@ body{
   font-family:"Silkscreen",ui-monospace,monospace;
   font-size:var(--t-body);
   line-height:1.7;
-  overflow-x:clip;
   -webkit-font-smoothing:antialiased;
 }
+/* One clip, on <main>, replacing the pair that used to sit on html and
+   body. Measured on-device: main alone holds the page at scrollWidth ==
+   clientWidth, whereas html and body only did it together — neither was
+   sufficient alone, so the pair was two rules doing one rule's job.
+   <main> also wraps everything except <header>, which keeps the clip out
+   of the sticky header's ancestor chain for free. */
+main{overflow-x:clip}
 img{display:block;max-width:100%;image-rendering:auto}
 a{color:inherit}
 h1,h2,h3,p,figure,ul{margin:0}
@@ -265,10 +270,18 @@ body::after{
 .wrap{max-width:1440px;margin-inline:auto;padding-inline:var(--gutter)}
 
 header{
-  position:sticky;top:0;z-index:80;background:var(--bg);
+  /* Above the scanline (98) and dither (97) layers, not below them.
+     Safari paints the strip behind the status bar by sampling the top edge
+     of the page, so that strip is always flat var(--bg) — it cannot carry
+     the textures. Leaving the header at z-index:80 put a textured surface
+     directly under a flat one in the same colour, which shows as a seam.
+     Lifting the header above both layers makes it flat too, so the strip
+     and the bar are one continuous field.
+     Also makes the old photos-page override redundant: .photo-frame is 99,
+     comfortably below 110. */
+  position:sticky;top:0;z-index:110;background:var(--bg);
   padding-top:env(safe-area-inset-top);
   box-shadow:0 var(--px) 0 0 var(--fg)}
-body.photos-page header{z-index:100}
 .nav{position:relative;display:flex;align-items:center;justify-content:space-between;gap:12px;
   padding-block:10px}
 .brand{display:flex;align-items:center;gap:12px;text-decoration:none}
@@ -307,7 +320,16 @@ body.photos-page header{z-index:100}
   .nav-links.is-open{display:grid;gap:2px}
   .nav-links a.hide-sm{display:inline-flex}
   .nav-links a{min-height:48px;padding:12px 14px}
-  .nav-links .toggle{width:36px;height:36px;margin:6px 6px 4px auto}
+  /* In the dropdown the toggle is a menu row, not the desktop icon square:
+     it stretches like the links, takes the same 48px target and padding, and
+     carries a text label so it reads as an entry rather than a stray button.
+     The fixed 36x36 + margin-left:auto is what pinned it right. */
+  .nav-links .toggle{
+    width:auto;height:auto;min-height:48px;
+    margin:6px 0 0;padding:12px 14px;
+    justify-content:space-between;gap:12px}
+  .nav-links .toggle[data-icon="moon"]::before{content:"Dark mode"}
+  .nav-links .toggle[data-icon="sun"]::before{content:"Light mode"}
   .menu-toggle{display:inline-flex;align-items:center;justify-content:center}
   .menu-toggle.is-open{background:var(--accent);color:var(--accent-contrast)}
 }
@@ -469,8 +491,15 @@ body.photos-page header{z-index:100}
 }
 .work .go{font-family:"Press Start 2P",monospace;font-size:var(--t-label);
   color:var(--panel-accent);white-space:nowrap}
+/* U+25B8 is not in Press Start 2P, so that one character fell through to a
+   system font with a different em box and baseline and sat off the pixel grid
+   next to the label. ">" is in the font, so it rasterises on the same grid.
+   It is also always present and only fades in, because adding a glyph on
+   :hover reflowed the label by its width + margin every time the pointer
+   crossed the card. */
 .work:hover .go{color:var(--panel-accent-contrast)}
-.work:hover .go::after{content:"\25B8";margin-left:6px}
+.work .go::after{content:">";margin-left:6px;opacity:0}
+.work:hover .go::after,.work:focus-visible .go::after{opacity:1}
 @media (max-width:760px){
   .work{grid-template-columns:auto minmax(0,1fr);row-gap:10px}
   .work .go{grid-column:2;justify-self:start}
@@ -487,7 +516,8 @@ div.work:hover{
 div.work:hover .work-num{color:var(--panel-accent)}
 div.work .go{color:var(--panel-fg);opacity:var(--dim-soft)}
 div.work:hover .go{color:var(--panel-fg);opacity:var(--dim-soft)}
-div.work:hover .go::after{content:""}
+/* a div.work has no destination, so it gets no chevron and reserves no room */
+div.work .go::after{content:none}
 
 .up-list{display:grid;gap:0;box-shadow:0 calc(-1 * var(--px)) 0 0 var(--fg)}
 .up{
@@ -554,7 +584,8 @@ a.up:hover .up-ref{opacity:1;color:var(--accent)}
 .links a{font-family:"Press Start 2P",monospace;font-size:var(--t-micro);
   text-transform:uppercase;text-decoration:none;padding:10px 0;
   display:flex;align-items:center;gap:8px;min-height:44px}
-.links a::before{content:"\25B8";color:var(--panel-accent)}
+/* same font-fallback problem as .work .go - see the note there */
+.links a::before{content:">";color:var(--panel-accent)}
 .links a:hover{color:var(--panel-accent)}
 
 .contact{text-align:center;padding-block:clamp(48px,9vw,104px) clamp(24px,4vw,48px)}
@@ -723,7 +754,12 @@ html{scroll-behavior:smooth}
 .photo-meta span::before{color:var(--accent)}
 .photo-camera::before{content:"CAM · ";}
 .photo-film::before{content:"FILM · ";}
-.photo-lightbox{width:fit-content;max-width:88vw;max-height:94vh;
+.photo-lightbox{width:fit-content;max-width:88vw;
+  /* iOS resolves vh against the LARGEST viewport (toolbars hidden), so a
+     94vh dialog overruns the screen while the bars are showing and the
+     close button lands off-canvas. dvh tracks the live viewport; the vh
+     line stays as the fallback. */
+  max-height:94vh;max-height:94dvh;
   box-sizing:border-box;overflow:hidden;padding:0;border:0;
   background:var(--panel);color:var(--panel-fg);
   box-shadow:
@@ -735,9 +771,9 @@ html{scroll-behavior:smooth}
   background:var(--lightbox-backdrop);
 }
 .photo-lightbox-body{display:grid;gap:12px;width:fit-content;
-  max-width:100%;max-height:94vh}
+  max-width:100%;max-height:94vh;max-height:94dvh}
 .photo-lightbox-body img{display:block;width:auto;max-width:100%;height:auto;
-  max-height:calc(94vh - 190px);margin-inline:auto;
+  max-height:calc(94vh - 190px);max-height:calc(94dvh - 190px);margin-inline:auto;
   object-fit:contain;background:var(--photo-backdrop)}
 .photo-lightbox-caption{text-align:center;font-size:var(--t-micro);
   line-height:1.8;text-transform:uppercase}
@@ -753,7 +789,8 @@ html{scroll-behavior:smooth}
   .photo-card{width:100%;margin-bottom:40px}
   .photo-lightbox{max-width:calc(100vw - 24px)}
   .photo-lightbox-body{width:100%}
-  .photo-lightbox-body img{max-height:calc(100vh - 220px)}
+  .photo-lightbox-body img{max-height:calc(100vh - 220px);
+    max-height:calc(100dvh - 220px)}
   .photo-lightbox-actions{gap:12px;padding-inline:12px}
 }
 @media (min-width:761px) and (max-width:1000px){

@@ -20,6 +20,11 @@ jobs:
     steps:
       - name: Check out repository
         uses: actions/checkout@v4
+        with:
+          # build.py falls back to the last commit date for any post with no
+          # `date:` in front matter. The default shallow clone carries only
+          # the tip commit, so every post would resolve to the build date.
+          fetch-depth: 0
 
       - name: Set up Python
         uses: actions/setup-python@v5

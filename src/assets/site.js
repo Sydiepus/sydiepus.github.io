@@ -16,6 +16,12 @@
   function apply(mode){
     if (mode === "night") root.setAttribute("data-theme","night");
     else root.removeAttribute("data-theme");
+    /* Safari paints the status-bar strip and its own toolbar with
+       theme-color, so it must follow the manual toggle. The theme is driven
+       by data-theme, not prefers-color-scheme, so a media-query meta cannot
+       do this. Keep these hexes equal to --sand-bg and --night. */
+    var tc = document.querySelector('meta[name="theme-color"]');
+    if (tc) tc.setAttribute("content", mode === "night" ? "#2b1b1c" : "#f8f1ea");
     if (!btn) return;
     var nextTheme = (mode === "night") ? "light" : "dark";
     btn.textContent = "";
@@ -58,6 +64,20 @@
     window.addEventListener("resize", function(){
       if (window.innerWidth > 900) closeMenu();
     }, {passive:true});
+    /* A disclosure menu is expected to close on Escape and on a click
+       outside it. The menu.contains() guard matters: without it the click
+       that opens the menu bubbles to document and closes it again. */
+    document.addEventListener("keydown", function(e){
+      if (e.key === "Escape" && nav.classList.contains("is-open")){
+        closeMenu();
+        menu.focus();
+      }
+    });
+    document.addEventListener("click", function(e){
+      if (!nav.classList.contains("is-open")) return;
+      if (nav.contains(e.target) || menu.contains(e.target)) return;
+      closeMenu();
+    });
   }
 
   /* ---------- photo lightbox ---------- */
@@ -71,6 +91,10 @@
       lightboxFilm = document.getElementById("photoLightboxFilm"),
       lightboxApp = document.getElementById("photoLightboxApp");
 
+  /* The overflow lock is DELIBERATE: freezing the document is what sells the
+     bar sliding off-screen behind the dialog. Keep it. It is cleared here
+     rather than on the dialog's close event so an Escape press unwinds it
+     too. */
   function closeLightbox(){
     if (!lightbox) return;
     lightbox.close();
@@ -93,7 +117,12 @@
         lightboxApp.textContent = link.dataset.photoApp || "";
         document.documentElement.style.overflow = "hidden";
         document.body.style.overflow = "hidden";
-        lightbox.showModal();
+        /* guarded so a throw here cannot strand the page with overflow:hidden */
+        try {
+          lightbox.showModal();
+        } catch (err) {
+          closeLightbox();
+        }
       });
     });
     photoClose.addEventListener("click", closeLightbox);
@@ -104,8 +133,18 @@
   }
 
   /* ---------- seamless marquee ---------- */
+  /* The -50% in `@keyframes slide` only lands seamlessly if the track is
+     duplicated EXACTLY once — the CSS and this loop are a pair, do not
+     change one without the other. Cloning nodes rather than reassigning
+     innerHTML avoids a full reparse and keeps any listeners intact. */
   var track = document.getElementById("tickerTrack");
-  if (track) track.innerHTML += track.innerHTML;
+  if (track){
+    var dupe = document.createDocumentFragment();
+    Array.prototype.forEach.call(track.children, function(node){
+      dupe.appendChild(node.cloneNode(true));
+    });
+    track.appendChild(dupe);
+  }
 
   /* ---------- stat bars: fill in discrete 5% steps ---------- */
   var reduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
@@ -113,7 +152,8 @@
   function fillBar(card){
     card.querySelectorAll(".bar i").forEach(function(el){
       var target = Math.max(0, parseInt(el.dataset.level, 10) || 0),
-          out    = el.closest(".stat").querySelector("[data-out]");
+          stat   = el.closest(".stat"),
+          out    = stat && stat.querySelector("[data-out]");
       if (reduced){
         el.style.width = target + "%";
         if (out) out.textContent = target;
@@ -174,9 +214,21 @@
   }
 
   /* ---------- konami code -> flip theme ---------- */
-  var seq = [38,38,40,40,37,39,37,39,66,65], pos = 0;
+  var seq = ["arrowup","arrowup","arrowdown","arrowdown",
+             "arrowleft","arrowright","arrowleft","arrowright","b","a"],
+      pos = 0;
   window.addEventListener("keydown", function(e){
-    pos = (e.keyCode === seq[pos]) ? pos + 1 : 0;
+    /* keyCode is deprecated, and the sequence must not eat keystrokes aimed
+       at a field — there are none today, but a search box would break this. */
+    var el = e.target;
+    if (el && (el.isContentEditable ||
+               /^(INPUT|TEXTAREA|SELECT)$/.test(el.tagName || ""))){
+      pos = 0;
+      return;
+    }
+    var key = String(e.key || "").toLowerCase();
+    /* a mismatch that happens to be the FIRST key restarts at 1, not 0 */
+    pos = (key === seq[pos]) ? pos + 1 : (key === seq[0] ? 1 : 0);
     if (pos === seq.length){
       pos = 0;
       toggleTheme();

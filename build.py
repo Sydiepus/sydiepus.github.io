@@ -38,6 +38,7 @@ from pathlib import Path
 import markdown
 import yaml
 
+from src.errors import die, warn
 from src.index import render_homepage
 from src.blog import render_index, render_post
 from src.photos import load_photos, render_photos
@@ -52,6 +53,11 @@ SITE_JSON = SRC_DIR / "data" / "site.json"
 PHOTOS_JSON = SRC_DIR / "data" / "photos.json"
 PHOTOS_HTML = BUILD_DIR / "photos.html"
 
+# Matches a whole fenced block for either fence character, so code does not
+# inflate the reading estimate. The backreference keeps ``` and ~~~ paired.
+CODE_FENCE = re.compile(r"^(```|~~~)[^\n]*\n.*?^\1[^\n]*$", re.S | re.M)
+
+
 def slugify(text: str) -> str:
     """ASCII slug. Keeps filenames predictable so URLs never change."""
     text = unicodedata.normalize("NFKD", text)
@@ -59,6 +65,32 @@ def slugify(text: str) -> str:
     text = re.sub(r"[^\w\s-]", "", text).strip().lower()
     text = re.sub(r"[-\s]+", "-", text)
     return text or "post"
+
+
+def git_date(path: Path) -> dt.date | None:
+    """Date of the last commit to touch `path`, or None.
+
+    A CI checkout writes every file at checkout time, so st_mtime is the
+    build date rather than the publication date and every dateless post
+    silently re-dates itself on each deploy. The commit date is stable.
+    Requires the workflow to fetch full history (fetch-depth: 0); on a
+    shallow clone this yields the tip commit for everything, which the
+    caller surfaces via warn().
+    """
+    try:
+        result = subprocess.run(
+            ["git", "log", "-1", "--format=%cs", "--", str(path)],
+            cwd=ROOT, capture_output=True, text=True, timeout=5, check=False,
+        )
+    except (OSError, subprocess.SubprocessError):
+        return None
+    if result.returncode != 0:
+        return None
+    stamp = result.stdout.strip()
+    try:
+        return dt.date.fromisoformat(stamp) if stamp else None
+    except ValueError:
+        return None
 
 
 def parse_date(value, fallback: dt.date) -> dt.date:
@@ -75,15 +107,6 @@ def parse_date(value, fallback: dt.date) -> dt.date:
                 continue
         warn(f"unrecognised date {value!r}, using file mtime")
     return fallback
-
-
-def warn(msg: str) -> None:
-    print(f"  \033[33mwarning:\033[0m {msg}", file=sys.stderr)
-
-
-def die(msg: str) -> None:
-    print(f"\033[31merror:\033[0m {msg}", file=sys.stderr)
-    raise SystemExit(1)
 
 
 def load_projects(site: dict) -> list[dict]:
@@ -199,10 +222,12 @@ class Post:
 
         self.meta = meta
         self.body_md = body
-        mtime = dt.date.fromtimestamp(path.stat().st_mtime)
+        fallback = git_date(path) or dt.date.fromtimestamp(path.stat().st_mtime)
 
         self.title = str(meta.get("title") or path.stem.replace("-", " ").title())
-        self.date = parse_date(meta.get("date"), mtime)
+        self.date = parse_date(meta.get("date"), fallback)
+        if not meta.get("date"):
+            warn(f"{path.name}: no date in front matter, inferred {self.date.isoformat()}")
         self.slug = slugify(str(meta.get("slug") or path.stem))
         self.draft = bool(meta.get("draft", False))
 
@@ -227,7 +252,7 @@ class Post:
         )
         self.html = md.convert(body)
 
-        words = len(re.findall(r"\w+", re.sub(r"```.*?```", "", body, flags=re.S)))
+        words = len(re.findall(r"\w+", CODE_FENCE.sub("", body)))
         self.reading_min = max(1, round(words / 200))
 
         summary = meta.get("summary") or meta.get("description")
@@ -253,8 +278,8 @@ class Post:
 
 
 def build() -> int:
-    site = load_site()
-    projects = load_projects(site)
+    site = load_site()          # already runs load_projects for validation
+    projects = site["projects"]
     photos = load_photos()
 
     if BUILD_DIR.exists():
@@ -288,9 +313,7 @@ def build() -> int:
 
     posts.sort(key=lambda p: (p.date, p.title), reverse=True)
 
-    if BLOG_DIR.exists():
-        shutil.rmtree(BLOG_DIR)
-    BLOG_DIR.mkdir(parents=True)
+    BLOG_DIR.mkdir(parents=True)   # BUILD_DIR was recreated empty above
 
     for p in posts:
         out = BLOG_DIR / f"{p.slug}.html"

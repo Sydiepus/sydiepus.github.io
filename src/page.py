@@ -50,7 +50,17 @@ def render_head(site: dict, title: str, desc: str, depth: int = 0,
 <html lang="en">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<!-- NO viewport-fit=cover. With it, iOS hands the page the whole screen
+     including the strip behind the status bar, and then every edge-anchored
+     thing becomes your problem: position:fixed and position:sticky both
+     resolve against the LAYOUT viewport, whose top sits below that strip.
+     Result: page text scrolls up into the clock and battery with nothing
+     behind it, the sticky header pins below the gap instead of at the top,
+     and the fixed scanline/dither layers stop short of the same edge.
+     Without it Safari insets the viewport itself and fills the strip with
+     theme-color. Nothing on this site used the extra space. -->
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="theme-color" content="#f8f1ea">
 <title>{esc(title)}</title>
 <meta name="description" content="{esc(desc)}">
 <meta name="author" content="{esc(meta["author"])}">
@@ -65,7 +75,7 @@ def render_head(site: dict, title: str, desc: str, depth: int = 0,
 <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=Silkscreen:wght@400;700&family=IBM+Plex+Mono:wght@400;600&display=swap" rel="stylesheet">
 <link rel="icon" href="{up}assets/potato-32.png">
 <link rel="stylesheet" href="{up}assets/site.css">
-<script>try{{if(localStorage.getItem("px-theme")==="night")document.documentElement.setAttribute("data-theme","night")}}catch(e){{}}</script>
+<script>try{{if(localStorage.getItem("px-theme")==="night"){{document.documentElement.setAttribute("data-theme","night");var m=document.querySelector('meta[name="theme-color"]');if(m)m.content="#2b1b1c"}}}}catch(e){{}}</script>
 <script src="{up}assets/site.js" defer></script>
 <noscript><style>.reveal{{opacity:1!important;transform:none!important}}</style></noscript>
 </head>

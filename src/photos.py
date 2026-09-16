@@ -5,6 +5,7 @@ from __future__ import annotations
 import json
 from pathlib import Path
 
+from .errors import die
 from .page import esc, render_footer, render_head
 
 ROOT = Path(__file__).parent.parent.resolve()
@@ -16,32 +17,30 @@ def load_photos() -> dict:
     try:
         data = json.loads(PHOTOS_JSON.read_text(encoding="utf-8"))
     except json.JSONDecodeError as exc:
-        raise SystemExit(f"{PHOTOS_JSON.relative_to(ROOT)}: invalid JSON\n{exc}") from exc
+        die(f"{PHOTOS_JSON.relative_to(ROOT)}: invalid JSON\n{exc}")
 
     if not isinstance(data, dict):
-        raise SystemExit(f"{PHOTOS_JSON.relative_to(ROOT)} must contain an object")
+        die(f"{PHOTOS_JSON.relative_to(ROOT)} must contain an object")
     required = {"title", "description", "intro", "entries"}
     missing = required - data.keys()
     if missing:
-        raise SystemExit(
-            f"{PHOTOS_JSON.relative_to(ROOT)} is missing: {', '.join(sorted(missing))}"
-        )
+        die(f"{PHOTOS_JSON.relative_to(ROOT)} is missing: {', '.join(sorted(missing))}")
     if not isinstance(data["entries"], list):
-        raise SystemExit(f"{PHOTOS_JSON.relative_to(ROOT)} entries must be an array")
+        die(f"{PHOTOS_JSON.relative_to(ROOT)} entries must be an array")
 
     entry_required = {"image", "camera", "film"}
     entry_optional = {"title", "place", "alt", "app"}
     for number, entry in enumerate(data["entries"], 1):
         if not isinstance(entry, dict):
-            raise SystemExit(f"photo {number} must be an object")
+            die(f"photo {number} must be an object")
         missing = entry_required - entry.keys()
         if missing:
-            raise SystemExit(f"photo {number} is missing: {', '.join(sorted(missing))}")
+            die(f"photo {number} is missing: {', '.join(sorted(missing))}")
         if not all(isinstance(entry[key], str) and entry[key].strip()
                    for key in entry_required):
-            raise SystemExit(f"photo {number} fields must be non-empty strings")
+            die(f"photo {number} fields must be non-empty strings")
         if not all(isinstance(entry[key], str) for key in entry_optional if key in entry):
-            raise SystemExit(f"photo {number} optional fields must be strings")
+            die(f"photo {number} optional fields must be strings")
 
     return data
 
